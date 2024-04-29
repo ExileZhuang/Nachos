@@ -74,14 +74,20 @@ Producer(_int which)
     for (num = 0; num < N_MESSG ; num++) {
       // Put the code to prepare the message here.
       // ...
+      message->value=num;
+      message->thread_id=which;
 
       // Put the code for synchronization before  ring->Put(message) here.
       // ...
+      nempty->P();
+      mutex->P();
 
       ring->Put(message);
 
       // Put the code for synchronization after  ring->Put(message) here.
       // ...
+      mutex->V();
+      nfull->V();
 
     }
 }
@@ -118,11 +124,15 @@ Consumer(_int which)
 
       // Put the code for synchronization before ring->Get(message) here.
       // ...
+      nfull->P();
+      mutex->P();
 
       ring->Get(message);
 
       // Put the code for synchronization after ring->Get(message) here.
       // ...
+      mutex->V();
+      nempty->V();
 
 
       // form a string to record the message
@@ -155,9 +165,14 @@ ProdCons()
     // Put the code to construct all the semaphores here.
     // ....
 
+    mutex=new Semaphore("mutex",1);
+    nfull=new Semaphore("nfull",0);
+    nempty=new Semaphore("nempty",BUFF_SIZE);
+
     // Put the code to construct a ring buffer object with size 
     //BUFF_SIZE here.
-    // ...    
+    // ...
+    ring=new Ring(BUFF_SIZE);
 
 
     // create and fork N_PROD of producer threads 
@@ -172,6 +187,8 @@ ProdCons()
       //     integer i as the argument of function "Producer"
       //  ...
 
+      producers[i]=new Thread(prod_names[i]);
+      producers[i]->Fork(Producer,i);
     };
 
     // create and fork N_CONS of consumer threads 
@@ -184,6 +201,8 @@ ProdCons()
       //     the name in cons_names[i] and 
       //     integer i as the argument of function "Consumer"
       //  ...
+      consumers[i]=new Thread(cons_names[i]);
+      consumers[i]->Fork(Consumer,i);
 
     };
 }

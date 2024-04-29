@@ -22,7 +22,7 @@ include ../filesys/Makefile.local
 #include ../vm/Makefile.local
 #include ../filesys/Makefile.local
 
-include ../Makefile.dep
+#include ../Makefile.dep
 include ../Makefile.common
 
 endif # MAKEFILE_FILESYS
