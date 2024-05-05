@@ -339,3 +339,20 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 } 
+
+
+//do something:
+
+BitMap* FileSystem::getBitMap(){
+    int numSector=1024;
+    BitMap* freeBitMap=new BitMap(numSector);
+    freeBitMap->FetchFrom(freeMapFile);
+    return freeBitMap;
+}
+
+
+void FileSystem::setBitMap(BitMap* freeMap){
+    freeMap->WriteBack(freeMapFile);
+}
+
+//end do;

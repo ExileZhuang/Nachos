@@ -85,6 +85,12 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
+
+	//do something:
+
+	void WriteBack();
+
+	//end do;
     
   private:
     FileHeader *hdr;			// Header for this file 

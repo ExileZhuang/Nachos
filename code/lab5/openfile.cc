@@ -29,6 +29,10 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+
+    //do something:
+    hdrSector=sector;
+    //end do;
 }
 
 //----------------------------------------------------------------------
@@ -148,10 +152,22 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     bool firstAligned, lastAligned;
     char *buf;
 
-    if ((numBytes <= 0) || (position >= fileLength))
-	return 0;				// check request
-    if ((position + numBytes) > fileLength)
-	numBytes = fileLength - position;
+
+    //do something:
+    if ((numBytes <= 0) || (position > fileLength)){
+        return -1;
+    }				// check request
+    if ((position + numBytes) > fileLength){
+        int incrementBytes=(position+numBytes)-fileLength;
+        BitMap* freeBitMap=fileSystem->getBitMap();
+        bool hdrRet=hdr->Allocate(freeBitMap,fileLength,incrementBytes);
+        if(!hdrRet){
+            return -1;
+        }
+        fileSystem->setBitMap(freeBitMap);
+    }
+    //end do;
+
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 
@@ -192,3 +208,11 @@ OpenFile::Length()
 { 
     return hdr->FileLength(); 
 }
+
+//do something;
+
+void OpenFile::WriteBack(){
+    hdr->WriteBack(hdrSector);
+}
+
+//end do;

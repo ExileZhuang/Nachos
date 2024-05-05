@@ -56,6 +56,14 @@ class FileHeader {
 
     void Print();			// Print the contents of the file.
 
+    //do something:
+
+    FileHeader();
+
+    bool Allocate(BitMap *freeMap, int fileSize,int incrementBytes);
+
+    //end do;
+
   private:
     int numBytes;			// Number of bytes in the file
     int numSectors;			// Number of data sectors in the file

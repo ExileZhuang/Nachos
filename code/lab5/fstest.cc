@@ -139,15 +139,31 @@ Append(char *from, char *to, int half)
 //	printf("start value: %d,  amountRead %d, ", start, amountRead);
 //	result = openFile->WriteAt(buffer, amountRead, start);
 	result = openFile->Write(buffer, amountRead);
+
+    //do something:
+
+    if(result<0){
+        printf("\nError!!!\n");
+        printf("Insuficient Disk Space, or File is Too Big!\n");
+        printf("Writting Terminated.\n\n");
+        break;
+    }
+    //end do;
+;
 //	printf("result of write: %d\n", result);
 	ASSERT(result == amountRead);
-//	start += amountRead;
+    //do something:
+	start += amountRead;
+    //end do;
 //	ASSERT(start == openFile->Length());
     }
     delete [] buffer;
 
 // Write the inode back to the disk, because we have changed it
-// openFile->WriteBack();
+//do something:
+ openFile->WriteBack();
+ DEBUG('f',"inodes have been written back\n");
+ //end do;
 //  printf("inodes have been written back\n");
     
 // Close the UNIX and the Nachos files
@@ -224,16 +240,26 @@ NAppend(char *from, char *to)
 //	printf("start value: %d,  amountRead %d, ", start, amountRead);
 //	result = openFile->WriteAt(buffer, amountRead, start);
 	result = openFileTo->Write(buffer, amountRead);
+    //do something:
+
+    if(result<0){
+        printf("\nERROR!!!!!!\n");
+        printf("Insuficient Disk Space, or File is Too Big!\n");
+        printf("Writting Terminated.\n\n");
+        break;
+    }
+
+    //end do;
 //	printf("result of write: %d\n", result);
 	ASSERT(result == amountRead);
-//	start += amountRead;
+	start += amountRead;
 //	ASSERT(start == openFile->Length());
     }
     delete [] buffer;
 
 // Write the inode back to the disk, because we have changed it
-// openFileTo->WriteBack();
-// printf("inodes have been written back\n");
+   openFileTo->WriteBack();
+   DEBUG('f',"inodes have been written back\n");
     
 // Close both Nachos files
     delete openFileTo;

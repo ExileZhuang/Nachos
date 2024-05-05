@@ -38,17 +38,64 @@
 //	"fileSize" is the bit map of free disk sectors
 //----------------------------------------------------------------------
 
-bool
-FileHeader::Allocate(BitMap *freeMap, int fileSize)
-{ 
-    numBytes = fileSize;
-    numSectors  = divRoundUp(fileSize, SectorSize);
-    if (freeMap->NumClear() < numSectors)
-	return FALSE;		// not enough space
 
-    for (int i = 0; i < numSectors; i++)
-	dataSectors[i] = freeMap->Find();
-    return TRUE;
+bool
+FileHeader::Allocate(BitMap *freeMap, int fileSize,int incrementBytes)
+{ 
+    //do something:
+
+    if(numSectors>30){
+        return false;
+    }
+    if((fileSize==0)&&(incrementBytes>0)){
+        if(freeMap->NumClear()<1){
+            return false;
+        }
+        dataSectors[0]=freeMap->Find();
+        numSectors=1;
+        numBytes=0;
+    }
+    numBytes = fileSize;
+    int offset=numBytes%SectorSize;
+    int newSectorBytes=incrementBytes-(SectorSize-(offset+1));
+    if(newSectorBytes<=0){
+        numBytes=numBytes+incrementBytes;
+        return TRUE;
+    }
+    int moreSectors=divRoundUp(newSectorBytes,SectorSize);
+    if(numSectors+moreSectors>30){
+        return FALSE;
+    }
+    if(freeMap->NumClear()<moreSectors){
+        return false;
+    }
+    for(int i=numSectors;i<numSectors+moreSectors;++i){
+        dataSectors[i]=freeMap->Find();
+    }
+    numBytes=numBytes+incrementBytes;
+    numSectors=numSectors+moreSectors;
+    return true;
+
+    //end do;
+    // numSectors  = divRoundUp(fileSize, SectorSize);
+    // if (freeMap->NumClear() < numSectors)
+	// return FALSE;		// not enough space
+
+    // for (int i = 0; i < numSectors; i++)
+	// dataSectors[i] = freeMap->Find();
+    // return TRUE;
+}
+
+//old:
+bool FileHeader::Allocate(BitMap *freeMap, int fileSize)
+{ 
+ numBytes = fileSize;
+ numSectors = divRoundUp(fileSize, SectorSize);
+ if (freeMap->NumClear() < numSectors)
+ return FALSE; // not enough space
+ for (int i = 0; i < numSectors; i++)
+ dataSectors[i] = freeMap->Find();
+ return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -148,3 +195,15 @@ FileHeader::Print()
     }
     delete [] data;
 }
+
+//do something:
+
+FileHeader::FileHeader(){
+    numBytes=0;
+    numSectors=0;
+    for(int i=0;i<numSectors;++i){
+        dataSectors[i]=0;
+    }
+}
+
+//end do;

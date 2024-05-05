@@ -11,14 +11,14 @@
  */
 
 #include "syscall.h"
-
+static int a[40];
 int
 main()
 {
     int i,j,k;
     k=3;
     i=2; 
-    j=j-1;
+    j=i-1;
     k=i-j+k;
     Halt();
     /* not reached */
