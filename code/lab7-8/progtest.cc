@@ -23,6 +23,7 @@
 void
 StartProcess(char *filename)
 {
+    printf("This is Lab7-8\n");
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
 
@@ -32,6 +33,7 @@ StartProcess(char *filename)
     }
     space = new AddrSpace(executable);    
     currentThread->space = space;
+    space->Print();
 
     delete executable;			// close file
 

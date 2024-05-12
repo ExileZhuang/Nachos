@@ -31,6 +31,18 @@ class Scheduler {
   private:
     List *readyList;  		// queue of threads that are ready to run,
 				// but not running
+#ifdef USER_PROGRAM
+  public:
+    List *getReadyList() { return readyList; }
+    List *getWaitingList() { return waitingList; }
+    List *getTerminatedList() { return terminatedList; }
+    void deleteTerminatedThread(int deleteSpaceId);
+    void emptyList(List *tmpList) { delete tmpList; }
+    
+  private:
+    List *waitingList;    // 等待运行线程的队列
+    List *terminatedList; // 终止运行但未释放线程的队列
+#endif
 };
 
 #endif // SCHEDULER_H

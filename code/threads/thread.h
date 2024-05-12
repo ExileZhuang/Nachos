@@ -58,7 +58,7 @@
 
 
 // Thread state
-enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
+enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED,TERMINATED };
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(_int arg);	 
@@ -122,12 +122,21 @@ class Thread {
 // while executing kernel code.
 
     int userRegisters[NumTotalRegs];	// user-level CPU register state
+    int waitProcessSpaceId,waitProcessExitCode,exitCode;
 
   public:
+    AddrSpace *space;
     void SaveUserState();		// save user-level register state
     void RestoreUserState();		// restore user-level register state
-
-    AddrSpace *space;			// User code this thread is running.
+			// User code this thread is running.
+    
+    void Join(int SpaceId);
+    void Terminated();
+    int userProgramId() { return space->getSpaceId(); }
+    int ExitCode() { return exitCode; }
+    int waitExitCode() { return waitProcessExitCode; }
+    int setWaitExitCode(int tmpCode) { waitProcessExitCode = tmpCode; }
+    int setExitCode(int tmpCode) { exitCode = tmpCode; }
 #endif
 };
 

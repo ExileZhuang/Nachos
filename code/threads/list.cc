@@ -236,3 +236,22 @@ List::SortedRemove(int *keyPtr)
     return thing;
 }
 
+void List::RemoveItem(ListElement *tmp) {
+    bool isFind = FALSE;
+    ListElement *now = first, *pre = NULL;
+    while(now != NULL){
+        if(now->item == tmp->item) { isFind = TRUE; break;}
+        pre = now;
+        now = now->next;
+    }
+    if(isFind){
+        if(first == last) first = last = NULL;  // 队里只有一个元素
+        else{
+            if(pre == NULL) first = first->next;    // 删队首
+            else if(now == last) {last = pre; last->next = NULL;}   // 删队尾
+            else{   // 删中间
+                pre->next = now->next;
+            }
+        }
+    }
+}

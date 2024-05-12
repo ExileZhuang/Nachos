@@ -23,6 +23,7 @@
 void
 StartProcess(char *filename)
 {
+    printf("This is UserProg\n");
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
 

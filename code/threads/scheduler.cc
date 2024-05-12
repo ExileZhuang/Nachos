@@ -29,7 +29,13 @@
 
 Scheduler::Scheduler()
 { 
-    readyList = new List; 
+    readyList = new List;
+#ifdef USER_PROGRAM
+    // 如果 Joinee 没有退出，Joiner 进入等待
+    waitingList = new List;
+    // 线程调用 Finish() 进入该队列，Joiner 通过检查该队列确定 Joinee 是否已经退出
+    terminatedList = new List;
+#endif
 } 
 
 //----------------------------------------------------------------------
@@ -40,6 +46,10 @@ Scheduler::Scheduler()
 Scheduler::~Scheduler()
 { 
     delete readyList; 
+#ifdef USER_PROGRAM
+    delete waitingList;
+    delete terminatedList;
+#endif
 } 
 
 //----------------------------------------------------------------------
@@ -145,3 +155,18 @@ Scheduler::Print()
     printf("Ready list contents:\n");
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
+
+#ifdef USER_PROGRAM
+void Scheduler::deleteTerminatedThread(int deleteSpaceId) {
+    ListElement *first = terminatedList->listFirst();
+    while(first != NULL){
+        Thread *thread = (Thread *)first->item;
+        if(thread->userProgramId() == deleteSpaceId){
+            terminatedList->RemoveItem(first);
+            break;
+        }
+        first = first->next;
+    }
+}
+#endif
+

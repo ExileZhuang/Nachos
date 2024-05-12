@@ -51,6 +51,7 @@
 void
 ExceptionHandler(ExceptionType which)
 {
+    //printf("This is UserProg Exception\n");
     int type = machine->ReadRegister(2);
 
     if ((which == SyscallException) && (type == SC_Halt)) {

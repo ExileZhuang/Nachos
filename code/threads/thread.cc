@@ -34,7 +34,8 @@
 
 Thread::Thread(char* threadName)
 {
-    name = threadName;
+    name = new char[50];
+    strcpy(name,threadName);
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -151,11 +152,30 @@ Thread::Finish ()
     (void) interrupt->SetLevel(IntOff);		
     ASSERT(this == currentThread);
     
+#ifdef USER_PROGRAM
+    List *waitingList = scheduler->getWaitingList();
+    // 检查 Joiner 是否在等待队列中
+    ListElement *first = waitingList->listFirst(); // 队列首
+    while(first != NULL){
+        Thread *thread = (Thread *)first->item;     // 强转成Thread指针
+        if(thread->waitProcessSpaceId == userProgramId()){       // 在队列中
+            // printf("yes\n");
+            // 将子线程退出码赋给父进程的等待退出码
+            thread->setWaitExitCode(exitCode);
+            scheduler->ReadyToRun((Thread *)thread);
+            waitingList->RemoveItem(first);
+            break;
+        }
+        first = first->next;
+    }
+    Terminated();
+#else
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
     
     threadToBeDestroyed = currentThread;
-    Sleep();					// invokes SWITCH
-    // not reached
+    Sleep();	
+
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -394,4 +414,47 @@ Thread::RestoreUserState()
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
 }
+
+void Thread::Join(int SpaceId) {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);       // 关中断
+    waitProcessSpaceId = SpaceId;              // 设置当前线程所等待进程的spaceId
+    List *terminatedList = scheduler->getTerminatedList();  // 终止队列
+    List *waitingList = scheduler->getWaitingList();        // 等待队列
+    // 确定Joinee在不在终止队列中
+    bool interminatedList = FALSE;
+    ListElement *first = terminatedList->listFirst(); // 队列首
+    while(first != NULL){
+        Thread *thread = (Thread *)first->item;     // 强转成Thread指针
+        if(thread->userProgramId() == SpaceId){       // 在队列中
+            interminatedList = TRUE;
+            waitProcessExitCode = thread->ExitCode();  // 设置父线程等待子线程退出码
+            break;
+        }
+        first = first->next;
+    }
+    // Joinee不在终止队列中, 可运行态或阻塞态
+    if(!interminatedList){
+        waitingList->Append((void *)this);  // 阻塞Joiner
+        currentThread->Sleep();             // Joiner阻塞
+    }
+    // 被唤醒且Joinee在终止队列中，在终止队列中删除Joinee
+    scheduler->deleteTerminatedThread(SpaceId);
+    (void) interrupt->SetLevel(oldLevel);   // 开中断
+}
+
+void Thread::Terminated() {
+    List *terminatedList = scheduler->getTerminatedList();
+    ASSERT(this == currentThread);
+    ASSERT(interrupt->getLevel() == IntOff);
+    status = TERMINATED;
+    terminatedList->Append((void *)this);
+    Thread *nextThread = scheduler->FindNextToRun();
+    while(nextThread == NULL){
+        // printf("yes\n");
+        interrupt->Idle();
+        nextThread = scheduler->FindNextToRun();
+    }
+    scheduler->Run(nextThread);
+}
+
 #endif

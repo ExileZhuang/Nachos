@@ -15,6 +15,7 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "bitmap.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
@@ -31,11 +32,23 @@ class AddrSpace {
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
 
+    void Print();
+    unsigned int getSpaceId(){return spaceId;}
+
+#ifdef FILESYS
+
+    OpenFile *fileDescriptor[UserProgramNum];
+    int getFileDescriptor(OpenFile* openfile);
+    OpenFile* getFileId(int fd);
+    void releaseFileDescriptor(int fd);
+#endif
+
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
-    unsigned int numPages;		// Number of pages in the virtual 
+    unsigned int numPages,spaceId;		// Number of pages in the virtual 
 					// address space
+    static BitMap *userMap,*pidMap;
 };
 
 #endif // ADDRSPACE_H
