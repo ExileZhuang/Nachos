@@ -27,9 +27,12 @@
 OpenFile::OpenFile(int sector)
 { 
     hdr = new FileHeader;
-    hdr->FetchFrom(sector); //获取文件头
+    hdr->FetchFrom(sector);
     seekPosition = 0;
+
+    //do something:
     hdrSector=sector;
+    //end do;
 }
 
 //----------------------------------------------------------------------
@@ -72,13 +75,8 @@ OpenFile::Seek(int position)
 int
 OpenFile::Read(char *into, int numBytes)
 {
-   int result;
-#ifdef FILESYS
-   result = ReadAt(into,numBytes,0);
-#else  
-   result = ReadAt(into, numBytes, seekPosition);
+   int result = ReadAt(into, numBytes, seekPosition);
    seekPosition += result;
-#endif
    return result;
 }
 
@@ -146,71 +144,59 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
     return numBytes;
 }
 
-//-----------------------------------------------------------------------
+int
+OpenFile::WriteAt(char *from, int numBytes, int position)
+{
+    int fileLength = hdr->FileLength();
+    int i, firstSector, lastSector, numSectors;
+    bool firstAligned, lastAligned;
+    char *buf;
 
-//试图从文件尾部追加另一个文件内容
- int         //数据来源文件，文件大小，文件输入位置
- OpenFile::WriteAt(char *from, int numBytes, int position)
- {
-     int fileLength = hdr->FileLength();//从要写入文件的文件头读取文件长度
-     int i, firstSector, lastSector, numSectors;
-     bool firstAligned, lastAligned;
-     char *buf;
-   
-     
-     
-     if ((numBytes <= 0) || (position > fileLength))
- 	return -1;//参数错误  
 
-     if ((position + numBytes) > fileLength)//说明文件需要扩展
-        {
-           int incrementBytes = (position + numBytes) - fileLength;
-           BitMap *freeBitMap = fileSystem->getBitMap();
-           bool hdrRet;
-           hdrRet = hdr->Allocate(freeBitMap,fileLength,incrementBytes);
-           if(!hdrRet)
-             return -1;
-           fileSystem->setBitMap(freeBitMap);
+    //do something:
+    if ((numBytes <= 0) || (position > fileLength)){
+        return -1;
+    }				// check request
+    if ((position + numBytes) > fileLength){
+        int incrementBytes=(position+numBytes)-fileLength;
+        BitMap* freeBitMap=fileSystem->getBitMap();
+        bool hdrRet=hdr->Allocate(freeBitMap,fileLength,incrementBytes);
+        if(!hdrRet){
+            return -1;
         }
+        fileSystem->setBitMap(freeBitMap);
+    }
+    //end do;
 
+    DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
+			numBytes, position, fileLength);
 
-     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
- 			numBytes, position, fileLength);
+    firstSector = divRoundDown(position, SectorSize);
+    lastSector = divRoundDown(position + numBytes - 1, SectorSize);
+    numSectors = 1 + lastSector - firstSector;
 
-     //确定第一个扇区
-     firstSector = divRoundDown(position, SectorSize);
-     //确定最后一个扇区
-     lastSector = divRoundDown(position + numBytes - 1, SectorSize);
-     //输入数据涵盖扇区数
-     numSectors = 1 + lastSector - firstSector;
-     //创建完整的数据缓冲区
-     buf = new char[numSectors * SectorSize];
+    buf = new char[numSectors * SectorSize];
 
-     //确定起始位置是否为扇区开头，结束位置是否为扇区结尾
-     firstAligned = (bool)(position == (firstSector * SectorSize));
-     lastAligned = (bool)((position + numBytes) == ((lastSector + 1) * SectorSize));
+    firstAligned = (bool)(position == (firstSector * SectorSize));
+    lastAligned = (bool)((position + numBytes) == ((lastSector + 1) * SectorSize));
 
 // read in first and last sector, if they are to be partially modified
- //如果起始位置不再扇区开头或者结尾，则将开头和结尾扇区的全部内容放入缓冲区中
-     if (!firstAligned)
-         ReadAt(buf, SectorSize, firstSector * SectorSize);	
-     if (!lastAligned && ((firstSector != lastSector) || firstAligned))
-         ReadAt(&buf[(lastSector - firstSector) * SectorSize], 
- 				SectorSize, lastSector * SectorSize);	
+    if (!firstAligned)
+        ReadAt(buf, SectorSize, firstSector * SectorSize);	
+    if (!lastAligned && ((firstSector != lastSector) || firstAligned))
+        ReadAt(&buf[(lastSector - firstSector) * SectorSize], 
+				SectorSize, lastSector * SectorSize);	
 
- // copy in the bytes we want to change 
- //将from中的数据拷贝道缓冲区的对应区域中
-     bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
+// copy in the bytes we want to change 
+    bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
 
- // write modified sectors back    
- //将缓冲区数据写入道Openfile的对应扇区中
-     for (i = firstSector; i <= lastSector; i++)	
-         synchDisk->WriteSector(hdr->ByteToSector(i * SectorSize), 
- 					&buf[(i - firstSector) * SectorSize]);
-     delete [] buf;
-     return numBytes;
- }
-
+// write modified sectors back    
+    for (i = firstSector; i <= lastSector; i++)	
+        synchDisk->WriteSector(hdr->ByteToSector(i * SectorSize), 
+					&buf[(i - firstSector) * SectorSize]);
+    delete [] buf;
+    return numBytes;
+}
 
 //----------------------------------------------------------------------
 // OpenFile::Length
@@ -223,27 +209,22 @@ OpenFile::Length()
     return hdr->FileLength(); 
 }
 
-//--------------------------------------------------
-void OpenFile::WriteBack()
-{
+//do something;
+
+void OpenFile::WriteBack(){
     hdr->WriteBack(hdrSector);
 }
 
-//---------------------------------------------------
+//end do;
 
-int OpenFile::WriteStdout(char *from,int numBytes)
-{
-    int file = 1;//stdout
-    WriteFile(file,from,numBytes);
+#ifdef FILESYS
+int OpenFile::WriteStdout(char *from, int numBytes) {
+    int file = 1;
+    WriteFile(file,from,numBytes);  // 将from文件数据写入file中
     return numBytes;
 }
-
-//---------------------------------------------------
-
-int OpenFile::ReadStdin(char *into,int numBytes)
-{
-    int file = 0;//stdin
-    return ReadPartial(file,into,numBytes);
+int OpenFile::ReadStdin(char *into, int numBytes) {
+    int file = 0;
+    return ReadPartial(file,into,numBytes); // 将file文件数据写入into中
 }
-
-
+#endif

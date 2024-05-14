@@ -3,15 +3,10 @@ define MAKEFILE_USERPROG_LOCAL
 yes
 endef
 
-# If you add new files, you need to add them to CCFILES,
-# you can define CFILES if you choose to make .c files instead.
-# 
-# Make sure you use += and not = here.
-
 SFILES = switch$(HOST_LINUX).s
 
 CCFILES += main.cc\
-        list.cc\
+	list.cc\
 	scheduler.cc\
 	synch.cc\
 	synchlist.cc\
@@ -24,7 +19,7 @@ CCFILES += main.cc\
 	sysdep.cc\
 	stats.cc\
 	timer.cc\
-        addrspace.cc\
+	addrspace.cc\
 	bitmap.cc\
 	exception.cc\
 	progtest.cc\
@@ -32,14 +27,14 @@ CCFILES += main.cc\
 	machine.cc\
 	mipssim.cc\
 	translate.cc\
-	directory.cc\
+    directory.cc\
 	filehdr.cc\
 	filesys.cc\
 	fstest.cc\
 	openfile.cc\
 	synchdisk.cc\
 	disk.cc
-     
+
 INCPATH += -I- -I../lab9 -I../threads -I../machine -I../bin -I../filesys -I../monitor -I../network
 
 DEFINES += -DTHREADS
@@ -47,8 +42,8 @@ DEFINES += -DTHREADS
 ifdef MAKE_FILE_FILESYS_LOCAL
 DEFINES += -DUSER_PROGRAM
 else
-#直接对UNIX文件进行操作，与实验45对DISK上文件进行操作不同
 DEFINES += -DUSER_PROGRAM -DFILESYS_NEEDED -DFILESYS
 endif
 
 endif # MAKEFILE_USERPROG_LOCAL
+

@@ -416,15 +416,16 @@ Thread::RestoreUserState()
 }
 
 void Thread::Join(int SpaceId) {
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);       // 关中断
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
     waitProcessSpaceId = SpaceId;              // 设置当前线程所等待进程的spaceId
-    List *terminatedList = scheduler->getTerminatedList();  // 终止队列
-    List *waitingList = scheduler->getWaitingList();        // 等待队列
-    // 确定Joinee在不在终止队列中
+    List *terminatedList = scheduler->getTerminatedList();  // 获取终止队列
+    List *waitingList = scheduler->getWaitingList();        // 获取等待队列
+    
+    // 确定该线程在不在终止队列中
     bool interminatedList = FALSE;
     ListElement *first = terminatedList->listFirst(); // 队列首
     while(first != NULL){
-        Thread *thread = (Thread *)first->item;     // 强转成Thread指针
+        Thread *thread = (Thread *)first->item;
         if(thread->userProgramId() == SpaceId){       // 在队列中
             interminatedList = TRUE;
             waitProcessExitCode = thread->ExitCode();  // 设置父线程等待子线程退出码
@@ -432,12 +433,11 @@ void Thread::Join(int SpaceId) {
         }
         first = first->next;
     }
-    // Joinee不在终止队列中, 可运行态或阻塞态
+    // 如果不在终止队列中, 可运行态或阻塞态
     if(!interminatedList){
-        waitingList->Append((void *)this);  // 阻塞Joiner
+        waitingList->Append((void *)this); 
         currentThread->Sleep();             // Joiner阻塞
     }
-    // 被唤醒且Joinee在终止队列中，在终止队列中删除Joinee
     scheduler->deleteTerminatedThread(SpaceId);
     (void) interrupt->SetLevel(oldLevel);   // 开中断
 }

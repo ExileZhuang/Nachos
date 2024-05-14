@@ -60,10 +60,27 @@ SwapHeader (NoffHeader *noffH)
 
 BitMap *AddrSpace::userMap=new BitMap(NumPhysPages);
 BitMap* AddrSpace::pidMap=new BitMap(MAX_USERPROCESSES);
-
+bool ThreadMap[MAX_USERPROCESSES];
 
 AddrSpace::AddrSpace(OpenFile *executable)
 {
+    bool hasAvailabePid = false;
+    for(int i = 100;i<MAX_USERPROCESSES;i++)
+    {
+       if(!ThreadMap[i])
+         ThreadMap[i] = true;
+         spaceId = i;
+         hasAvailabePid = true;
+         break;
+    }
+    if(!hasAvailabePid)
+    {
+         printf("Too many process in Nachos!\n");
+         return;
+    }
+    if(userMap==NULL)
+       userMap = new BitMap(NumPhysPages);
+
     ASSERT(pidMap->NumClear()>=1);
     spaceId=pidMap->Find()+100;
     NoffHeader noffH;
@@ -91,6 +108,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 					numPages, size);
 // first, set up the translation 
     pageTable = new TranslationEntry[numPages];
+    ASSERT(userMap->NumClear()>=numPages);
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 	pageTable[i].physicalPage = userMap->Find();

@@ -18,6 +18,7 @@
 #include "bitmap.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
+#define UserProgramNum 3
 
 class AddrSpace {
   public:

@@ -27,15 +27,6 @@
 #include "system.h"
 #include "filehdr.h"
 
-//构造函数
-FileHeader::FileHeader()
-{
-    numBytes=0;//文件大小
-    numSectors=0;//文件扇区数
-    for(int i=0;i<NumDirect;i++)//NumDirector=30,文件最多拥有的扇区数
-       dataSectors[i]=0;//文件扇区索引表
-}
-
 //----------------------------------------------------------------------
 // FileHeader::Allocate
 // 	Initialize a fresh file header for a newly created file.
@@ -47,68 +38,67 @@ FileHeader::FileHeader()
 //	"fileSize" is the bit map of free disk sectors
 //----------------------------------------------------------------------
 
- bool
- FileHeader::Allocate(BitMap *freeMap, int fileSize)
- {   
-     numBytes = fileSize;
-     numSectors = divRoundUp(fileSize,SectorSize);
-     if(freeMap->NumClear()<numSectors)
-     return FALSE;
 
-     for(int i = 0;i < numSectors; i++)
-       dataSectors[i] = freeMap->Find();
-     return TRUE;
- }
+bool
+FileHeader::Allocate(BitMap *freeMap, int fileSize,int incrementBytes)
+{ 
+    //do something:
 
-//----------------------------------------------------------
-//重载的Allocate函数
-bool FileHeader::Allocate(BitMap *freeMap,int fileSize,int incrementBytes)
-{
-    //修改位图文件信息以及文件头的信息，但修改结果均未写入磁盘中
-    if(numSectors>30)//限定每个文件最多可分配30个扇区
-       return false;
-    if((fileSize==0)&&(incrementBytes>0))//在一个空文件后追加数据
-    {
-       if(freeMap->NumClear()<1)//至少需要一个扇区块
-          return false;  //磁盘已满，无空闲扇区可分配
-       //为添加数据先分配一个空闲数据块，并更新文件头信息
-       dataSectors[0]=freeMap->Find();
-       numSectors=1;
-       numBytes=0;
-    }
-    
-    numBytes=fileSize;
-//    int offset = numBytes % SectorSize -numBytes;//原文件最后一个扇区块数据偏移量
-//    int newSectorBytes = incrementBytes - (SectorSize-(offset+1));
-    int offset = numSectors * SectorSize - numBytes;
-    int newSectorBytes = incrementBytes - offset;
-
-    //最后一个扇区块剩余空间足以容纳追加数据，不需分配新的扇区块
-    if(newSectorBytes<=0)
-     {
-        numBytes = numBytes + incrementBytes;//更新文件头中的文件大小
-        return true;
-     }
-     
-     //最后一个扇区的剩余空间不足以容纳要写入的数据，分配新的磁盘块
-     int moreSectors = divRoundUp(newSectorBytes,SectorSize);//新加扇区块数
-     if(numSectors + moreSectors >30)
-        return false;  //文件过大，超出30个磁盘块
-     if(freeMap->NumClear()<moreSectors)//磁盘无足够空间
+    if(numSectors>30){
         return false;
-      
-     //没有超出文件大小的限制，并且磁盘有足够的空闲块
-     for(int i=numSectors;i<numSectors+moreSectors;i++)
-     {
+    }
+    if((fileSize==0)&&(incrementBytes>0)){
+        if(freeMap->NumClear()<1){
+            return false;
+        }
+        dataSectors[0]=freeMap->Find();
+        numSectors=1;
+        numBytes=0;
+    }
+    numBytes = fileSize;
+    int offset=numBytes%SectorSize;
+    int newSectorBytes=incrementBytes-(SectorSize-(offset+1));
+    if(newSectorBytes<=0){
+        numBytes=numBytes+incrementBytes;
+        return TRUE;
+    }
+    int moreSectors=divRoundUp(newSectorBytes,SectorSize);
+    if(numSectors+moreSectors>30){
+        return FALSE;
+    }
+    if(freeMap->NumClear()<moreSectors){
+        return false;
+    }
+    for(int i=numSectors;i<numSectors+moreSectors;++i){
         dataSectors[i]=freeMap->Find();
-     }
-     
-     numBytes=numBytes + incrementBytes;//更新文件大小
-     numSectors = numSectors+moreSectors;//更新文件扇区块数
-     return true;
+    }
+    numBytes=numBytes+incrementBytes;
+    numSectors=numSectors+moreSectors;
+    return true;
+
+    //end do;
+    // numSectors  = divRoundUp(fileSize, SectorSize);
+    // if (freeMap->NumClear() < numSectors)
+	// return FALSE;		// not enough space
+
+    // for (int i = 0; i < numSectors; i++)
+	// dataSectors[i] = freeMap->Find();
+    // return TRUE;
 }
 
-//-----------------------------------------------------------------------
+//old:
+bool FileHeader::Allocate(BitMap *freeMap, int fileSize)
+{ 
+ numBytes = fileSize;
+ numSectors = divRoundUp(fileSize, SectorSize);
+ if (freeMap->NumClear() < numSectors)
+ return FALSE; // not enough space
+ for (int i = 0; i < numSectors; i++)
+ dataSectors[i] = freeMap->Find();
+ return TRUE;
+}
+
+//----------------------------------------------------------------------
 // FileHeader::Deallocate
 // 	De-allocate all the space allocated for data blocks for this file.
 //
@@ -205,3 +195,15 @@ FileHeader::Print()
     }
     delete [] data;
 }
+
+//do something:
+
+FileHeader::FileHeader(){
+    numBytes=0;
+    numSectors=0;
+    for(int i=0;i<numSectors;++i){
+        dataSectors[i]=0;
+    }
+}
+
+//end do;

@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "syscall.h": "c"
+        "syscall.h": "c",
+        "compare": "cpp",
+        "type_traits": "cpp"
     }
 }

@@ -85,94 +85,93 @@ Copy(char *from, char *to)
 //         "from" to the end of it.
 //----------------------------------------------------------------------
 
- void
- Append(char *from, char *to, int half)
- {
-     FILE *fp;
-     OpenFile* openFile;
-     int amountRead, fileLength;
-     char *buffer;
+void
+Append(char *from, char *to, int half)
+{
+    FILE *fp;
+    OpenFile* openFile;
+    int amountRead, fileLength;
+    char *buffer;
 
- //  start position for appending
-     int start;
-  // Open UNIX file
-     if ((fp = fopen(from, "r")) == NULL) {	 
- 	printf("Couldn't open sourse file\"%s\".\n", from);
-        //printf("Copy: couldn't open input file %s\n", from);
- 	return;
-     }
- //计算UNIX文件长度
- // Figure out length of UNIX file
-     fseek(fp, 0, 2);		
-     fileLength = ftell(fp);
-     fseek(fp, 0, 0);
- //添加文件大小为0
-     if (fileLength == 0) 
-     {
-        printf("Nothing to append from file\"%s\".\n", from);
- 	//printf("Append: nothing to append from file %s\n", from);
- 	return;
-     }
-  //打开目标文件
-//nachos file
-     if ( (openFile = fileSystem->Open(to)) == NULL)
-     {
- 	// file "to" does not exits, then create one
- 	if (!fileSystem->Create(to, 0))//目标文件不存在，因此重新创建一个 
- 	{//创建失败
- 	    printf("Append: couldn't create the file %s to append\n", to);
- 	    fclose(fp);
- 	    return;
- 	}
- 	openFile = fileSystem->Open(to);//打开新创建的文件
-     }
-     ASSERT(openFile != NULL);
-     // append from position "start"
-     start = openFile->Length();//给start位置赋值
-     fileLength = openFile->Length();
-     if (half) start = start / 2;
+//  start position for appending
+    int start;
 
-     openFile->Seek(start);
+// Open UNIX file
+    if ((fp = fopen(from, "r")) == NULL) {	 
+	printf("Copy: couldn't open input file %s\n", from);
+	return;
+    }
+
+// Figure out length of UNIX file
+    fseek(fp, 0, 2);		
+    fileLength = ftell(fp);
+    fseek(fp, 0, 0);
+
+    if (fileLength == 0) 
+    {
+	printf("Append: nothing to append from file %s\n", from);
+	return;
+    }
+	 
+    if ( (openFile = fileSystem->Open(to)) == NULL)
+    {
+	// file "to" does not exits, then create one
+	if (!fileSystem->Create(to, 0)) 
+	{
+	    printf("Append: couldn't create the file %s to append\n", to);
+	    fclose(fp);
+	    return;
+	}
+	openFile = fileSystem->Open(to);
+    }
+
+    ASSERT(openFile != NULL);
+    // append from position "start"
+    start = openFile->Length();
+    if (half) start = start / 2;
+    openFile->Seek(start);
     
- // Append the data in TransferSize chunks
-     buffer = new char[TransferSize];//定义传输数据的缓冲区
-     while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0) 
-     {
-         int result;
+// Append the data in TransferSize chunks
+    buffer = new char[TransferSize];
+    while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0) 
+    {
+        int result;
 //	printf("start value: %d,  amountRead %d, ", start, amountRead);
 //	result = openFile->WriteAt(buffer, amountRead, start);
- 	result = openFile->Write(buffer, amountRead);//调用WriteAt函数
+	result = openFile->Write(buffer, amountRead);
+
+    //do something:
+
+    if(result<0){
+        printf("\nError!!!\n");
+        printf("Insuficient Disk Space, or File is Too Big!\n");
+        printf("Writting Terminated.\n\n");
+        break;
+    }
+    //end do;
+;
 //	printf("result of write: %d\n", result);
-
-        if(result<0)//文件过大，或空闲磁盘块不足
-        {
-           printf("\nERROR!!!!!!\n");
-           printf("Insuficient Disk Space, or File is Too Big!\n");
-           printf("Writting Terminated.\n\n");
-           break;
-        }       
-
- 	ASSERT(result == amountRead);
+	ASSERT(result == amountRead);
+    //do something:
 	start += amountRead;
+    //end do;
 //	ASSERT(start == openFile->Length());
-     }
-     delete [] buffer;
+    }
+    delete [] buffer;
 
- //将文件头写回硬盘
 // Write the inode back to the disk, because we have changed it
-   openFile->WriteBack();
-   DEBUG('f',"inodes have been written back\n");
-  // printf("inodes have been written back\n");
+//do something:
+ openFile->WriteBack();
+ DEBUG('f',"inodes have been written back\n");
+ //end do;
+//  printf("inodes have been written back\n");
     
- //关闭UNIX与Nachos文件
- // Close the UNIX and the Nachos files
-     delete openFile;
-     fclose(fp);
- }
+// Close the UNIX and the Nachos files
+    delete openFile;
+    fclose(fp);
+}
 
-
-
-//-------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // NAppend
 // 	NAppend is the same as Append except that the "from" file is a
 //         Nachos file instead of a UNIX file. It appends the contents
@@ -183,101 +182,90 @@ Copy(char *from, char *to)
 //         "from" to the end of it.
 //----------------------------------------------------------------------
 
- void
- NAppend(char *from, char *to)
- {
-     OpenFile* openFileFrom;
-     OpenFile* openFileTo;
-     int amountRead, fileLength;
-     char *buffer;
+void
+NAppend(char *from, char *to)
+{
+    OpenFile* openFileFrom;
+    OpenFile* openFileTo;
+    int amountRead, fileLength;
+    char *buffer;
 
-     //start为appending的开始位置
-     //  start position for appending
-     int start;
+    //  start position for appending
+    int start;
+
+    if (!strncmp(from, to, FileNameMaxLen))
+    {
+	//  "from" should be the same as "to"
+	printf("NAppend: should be different files\n");
+	return;
+    }
+
+    if ( (openFileFrom = fileSystem->Open(from)) == NULL)
+    {
+	// file "from" does not exits, give up
+	printf("NAppend:  file %s does not exist\n", from);
+	return;
+    }
+
+    fileLength = openFileFrom->Length();
+    if (fileLength == 0) 
+    {
+	printf("NAppend: nothing to append from file %s\n", from);
+	return;
+    }
+	 
+    if ( (openFileTo = fileSystem->Open(to)) == NULL)
+    {
+	// file "to" does not exits, then create one
+	if (!fileSystem->Create(to, 0)) 
+	{
+	    printf("Append: couldn't create the file %s to append\n", to);
+	    delete openFileFrom;
+	    return;
+	}
+	openFileTo = fileSystem->Open(to);
+    }
+
+    ASSERT(openFileTo != NULL);
+    // append from position "start"
+    start = openFileTo->Length();
+    openFileTo->Seek(start);
     
-     //from文件不能与to文件相同
-     if (!strncmp(from, to, FileNameMaxLen))
-     {
- 	//  "from" should be the same as "to"
- 	//printf("NAppend: should be different files\n");
- 	printf("Source and destination should be different files.\n");
-        return;
-     }
-  
-     //from文件不存在
-     if ( (openFileFrom = fileSystem->Open(from)) == NULL)
-     {
- 	// file "from" does not exits, give up
-        printf("Source file\"%s\"does not exist.\n",from);
-        //printf("NAppend:  file %s does not exist\n", from);
- 	return;
-     }
-     //from文件的长度
-     fileLength = openFileFrom->Length();
-     if (fileLength == 0)//添加的数据为空 
-     {
- 	printf("NAppend: nothing to append from file %s\n", from);
- 	return;
-     }
- 
-     //打开to文件
-     if ( (openFileTo = fileSystem->Open(to)) == NULL)
-     {
- 	// file "to" does not exits, then create one
- 	if (!fileSystem->Create(to, 0))//to文件不存在重新创建一个
- 	{
- 	    printf("Couldn't create destination file\"%s\"to append.\n", to);
- 	    printf("File already exists.or file too big,or files on disk over 12,or insufficient disk space.\n");
-            delete openFileFrom;
- 	    return;
- 	}
- 	openFileTo = fileSystem->Open(to);
-     }
+// Append the data in TransferSize chunks
+    buffer = new char[TransferSize];
+    openFileFrom->Seek(0);
+    while ( (amountRead = openFileFrom->Read(buffer, TransferSize)) > 0) 
+    {
+        int result;
+//	printf("start value: %d,  amountRead %d, ", start, amountRead);
+//	result = openFile->WriteAt(buffer, amountRead, start);
+	result = openFileTo->Write(buffer, amountRead);
+    //do something:
 
-     ASSERT(openFileTo != NULL);
-     // append from position "start"
-     //将to文件指针移动到末尾
-     start = openFileTo->Length();
-     openFileTo->Seek(start);
-     fileLength=openFileTo->Length();
-     
- //将添加的数据通过数据传送区传送
- // Append the data in TransferSize chunks
-     buffer = new char[TransferSize];
- //将from文件指针移到文件开头
-     openFileFrom->Seek(0);
-     while ( (amountRead = openFileFrom->Read(buffer, TransferSize)) > 0) 
-     {
-         int result;
- //	printf("start value: %d,  amountRead %d, ", start, amountRead);
- //	result = openFile->WriteAt(buffer, amountRead, start);
- 	result = openFileTo->Write(buffer, amountRead);
- //	printf("result of write: %d\n", result);         
-        if(result<0)
-        {
-           printf("\nERROR!!!!!\n");
-           printf("Insuficient Disk Space,or File is Too Big!\n");
-           printf("Writting Terminated.\n\n");
-           break;
-        }
-        
- 	ASSERT(result == amountRead);
- 	start += amountRead;
- //	ASSERT(start == openFile->Length());
-     }
-     delete [] buffer;
+    if(result<0){
+        printf("\nERROR!!!!!!\n");
+        printf("Insuficient Disk Space, or File is Too Big!\n");
+        printf("Writting Terminated.\n\n");
+        break;
+    }
 
- // Write the inode back to the disk, because we have changed it
- //更新to文件头
+    //end do;
+//	printf("result of write: %d\n", result);
+	ASSERT(result == amountRead);
+	start += amountRead;
+//	ASSERT(start == openFile->Length());
+    }
+    delete [] buffer;
+
+// Write the inode back to the disk, because we have changed it
    openFileTo->WriteBack();
-   DEBUG('f',"inodes have been written back!\n");
-  // printf("inodes have been written back\n");
-   
- // Close both Nachos files
- //关闭to和from文件
-     delete openFileTo;
-     delete openFileFrom;
- }
+   DEBUG('f',"inodes have been written back\n");
+    
+// Close both Nachos files
+    delete openFileTo;
+    delete openFileFrom;
+}
+
 
 
 

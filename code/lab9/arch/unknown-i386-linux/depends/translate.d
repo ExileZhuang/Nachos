@@ -1,8 +1,8 @@
-arch/unknown-i386-linux/depends/translate.d arch/unknown-i386-linux/objects/translate.o: ../machine/translate.cc ../threads/copyright.h \
- ../machine/machine.h ../threads/utility.h ../threads/bool.h \
+arch/unknown-i386-linux/depends/translate.d arch/unknown-i386-linux/objects/translate.o: ../machine/translate.cc ../lab9/copyright.h \
+ ../machine/machine.h ../lab9/utility.h ../lab9/bool.h \
  ../machine/sysdep.h ../machine/translate.h ../machine/disk.h \
- ../lab9/addrspace.h ../lab9/filesys.h ../lab9/bitmap.h \
- ../lab9/openfile.h ../threads/system.h ../threads/thread.h \
- ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
- ../machine/stats.h ../machine/timer.h ../lab9/synchdisk.h \
- ../threads/synch.h
+ ../lab9/addrspace.h ../lab9/filesys.h ../lab9/openfile.h \
+ ../lab9/../userprog/bitmap.h ../filesys/openfile\ .h ../lab9/bitmap.h \
+ ../lab9/system.h ../lab9/thread.h ../lab9/scheduler.h ../lab9/list.h \
+ ../machine/interrupt.h ../machine/stats.h ../machine/timer.h \
+ ../filesys/synchdisk.h ../lab9/synch.h

@@ -29,6 +29,10 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+
+    //do something:
+    hdrSector=sector;
+    //end do;
 }
 
 //----------------------------------------------------------------------
@@ -148,10 +152,22 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     bool firstAligned, lastAligned;
     char *buf;
 
-    if ((numBytes <= 0) || (position >= fileLength))
-	return 0;				// check request
-    if ((position + numBytes) > fileLength)
-	numBytes = fileLength - position;
+
+    //do something:
+    if ((numBytes <= 0) || (position > fileLength)){
+        return -1;
+    }				// check request
+    if ((position + numBytes) > fileLength){
+        int incrementBytes=(position+numBytes)-fileLength;
+        BitMap* freeBitMap=fileSystem->getBitMap();
+        bool hdrRet=hdr->Allocate(freeBitMap,fileLength,incrementBytes);
+        if(!hdrRet){
+            return -1;
+        }
+        fileSystem->setBitMap(freeBitMap);
+    }
+    //end do;
+
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 
@@ -192,3 +208,23 @@ OpenFile::Length()
 { 
     return hdr->FileLength(); 
 }
+
+//do something;
+
+void OpenFile::WriteBack(){
+    hdr->WriteBack(hdrSector);
+}
+
+//end do;
+
+#ifdef FILESYS
+int OpenFile::WriteStdout(char *from, int numBytes) {
+    int file = 1;
+    WriteFile(file,from,numBytes);  // 将from文件数据写入file中
+    return numBytes;
+}
+int OpenFile::ReadStdin(char *into, int numBytes) {
+    int file = 0;
+    return ReadPartial(file,into,numBytes); // 将file文件数据写入into中
+}
+#endif

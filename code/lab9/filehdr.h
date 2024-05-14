@@ -37,12 +37,9 @@
 
 class FileHeader {
   public:
-    FileHeader();
     bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header, 
 						//  including allocating space 
 						//  on disk for the file data
-    bool Allocate(BitMap *freeMap,int fileSize,int incrementBytes);//重载函数
-
     void Deallocate(BitMap *bitMap);  		// De-allocate this file's 
 						//  data blocks
 
@@ -59,10 +56,19 @@ class FileHeader {
 
     void Print();			// Print the contents of the file.
 
+    //do something:
+
+    FileHeader();
+
+    bool Allocate(BitMap *freeMap, int fileSize,int incrementBytes);
+
+    //end do;
+
   private:
-    int numBytes;			//该文件的字节数
-    int numSectors;			//该文件的数据区块数
-    int dataSectors[NumDirect];		//每一块数据区所在扇区位置
+    int numBytes;			// Number of bytes in the file
+    int numSectors;			// Number of data sectors in the file
+    int dataSectors[NumDirect];		// Disk sector numbers for each data 
+					// block in the file
 };
 
 #endif // FILEHDR_H

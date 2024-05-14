@@ -54,9 +54,25 @@ ExceptionHandler(ExceptionType which)
     //printf("This is UserProg Exception\n");
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
+    if ((which == SyscallException)) {
+        case SC_Halt:{
+            DEBUG('a', "Shutdown, initiated by user program.\n");
+   	        interrupt->Halt();
+            break;
+        }
+        case SC_Exec:{
+            int addr=machine->ReadRegister(4);
+            char filename[50];
+            for(int i=0;;++i){
+                machine->ReadMem(addr+i,1,(int*)&filename[i]);
+                if(filename[i]=='\0'){
+                    break;
+                }
+            }
+            printf("%s\n",filename);
+            interrupt->Halt();
+            break;
+    }
     } else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);

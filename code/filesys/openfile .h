@@ -63,6 +63,7 @@ class FileHeader;
 
 class OpenFile {
   public:
+    OpenFile(char*type){}
     OpenFile(int sector);		// Open a file whose header is located
 					// at "sector" on the disk
     ~OpenFile();			// Close the file
@@ -85,20 +86,14 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
-
-	//do something:
-
-	void WriteBack();
-
-	//end do;
-	OpenFile(char* type){}
-	int WriteStdout(char* from,int numBytes);
-	int WriteStdin(char* into,int numBytes);
+    void WriteBack();                   //写回
+    int WriteStdout(char*from,int numBytes);
+    int ReadStdin(char*into,int numBytes);
     
   private:
     FileHeader *hdr;			// Header for this file 
     int seekPosition;			// Current position within the file
-    int hdrSector;
+    int hdrSector;                      //文件头所在扇区号
 };
 
 #endif // FILESYS

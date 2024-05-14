@@ -12,7 +12,8 @@
 //		-s -x <nachos file> -c <consoleIn> <consoleOut>
 //		-f -cp <unix file> <nachos file>
 //		-p <nachos file> -r <nachos file> -l -D -t
-//              -n <network reliability> -m <machine id>
+//              -n <network reliability> -e <network orderability>
+//              -m <machine id>
 //              -o <other machine id>
 //              -z
 //
@@ -36,6 +37,7 @@
 //
 //  NETWORK
 //    -n sets the network reliability
+//    -e sets the network orderability
 //    -m sets this machine's host id (needed for the network)
 //    -o runs a simple test of the Nachos network software
 //
@@ -53,15 +55,14 @@
 #include "utility.h"
 #include "system.h"
 
+
 // External functions used by this file
 
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
-extern void Append(char *unixFile, char *nachosFile, int half);
-extern void NAppend(char *nachosFileFrom, char *nachosFileTo);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
-
+extern void SynchTest(void);
 
 //----------------------------------------------------------------------
 // main
@@ -84,16 +85,19 @@ main(int argc, char **argv)
 					// for a particular command
 
     DEBUG('t', "Entering main");
-    (void) Initialize(argc, argv);
+    (void) Initialize(argc, argv);    //system.cc
     
 #ifdef THREADS
-//    ThreadTest();
+    ThreadTest();
+#if 0
+    SynchTest();
+#endif 
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
         if (!strcmp(*argv, "-z"))               // print copyright
-            printf (copyright);
+            printf ("\n\n%s\n\n",copyright);
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
@@ -117,36 +121,20 @@ main(int argc, char **argv)
 	    ASSERT(argc > 2);
 	    Copy(*(argv + 1), *(argv + 2));
 	    argCount = 3;
-	} //ap 将一个UNIX文件内容添加道nachos文件的末尾
-	else if (!strcmp(*argv, "-ap")) {  // append from UNIX to Nachos
-	    ASSERT(argc > 2);
-	    Append(*(argv + 1), *(argv + 2), 0);
-	    argCount = 3;
-	} //hap 将一个UNIX文件内容从nachos的中间部分开始向后添加并覆盖nachos文件的后半部分
-	else if (!strcmp(*argv, "-hap")) {  
-             // cut half and append from UNIX to Nachos
-	    ASSERT(argc > 2);
-	    Append(*(argv + 1), *(argv + 2), 1);
-	    argCount = 3;
-        }//nap 将nachos中的file1内容添加道file2的文件末尾
-	else if (!strcmp(*argv, "-nap")) {  // append from Nachos to Nachos
-	    ASSERT(argc > 2);
-	    NAppend(*(argv + 1), *(argv + 2));
-	    argCount = 3;
-	} else if (!strcmp(*argv, "-p")) {// print a Nachos file打印
+	} else if (!strcmp(*argv, "-p")) {	// print a Nachos file
 	    ASSERT(argc > 1);
 	    Print(*(argv + 1));
 	    argCount = 2;
-	} else if (!strcmp(*argv, "-r")) {	// remove Nachos file移除
+	} else if (!strcmp(*argv, "-r")) {	// remove Nachos file
 	    ASSERT(argc > 1);
 	    fileSystem->Remove(*(argv + 1));
 	    argCount = 2;
 	} else if (!strcmp(*argv, "-l")) {	// list Nachos directory
             fileSystem->List();
 	} else if (!strcmp(*argv, "-D")) {	// print entire filesystem
-            fileSystem->Print();//打印整个文件系统
+            fileSystem->Print();
 	} else if (!strcmp(*argv, "-t")) {	// performance test
-            PerformanceTest();//文件系统性能测试
+            PerformanceTest();
 	}
 #endif // FILESYS
 #ifdef NETWORK

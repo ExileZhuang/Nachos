@@ -1,2 +1,2 @@
-arch/unknown-i386-linux/depends/utility.d arch/unknown-i386-linux/objects/utility.o: ../threads/utility.cc ../threads/copyright.h \
- ../threads/utility.h ../threads/bool.h ../machine/sysdep.h
+arch/unknown-i386-linux/depends/utility.d arch/unknown-i386-linux/objects/utility.o: utility.cc ../lab9/copyright.h ../lab9/utility.h \
+ ../lab9/bool.h ../machine/sysdep.h

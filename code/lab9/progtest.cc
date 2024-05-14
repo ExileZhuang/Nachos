@@ -21,28 +21,26 @@
 //----------------------------------------------------------------------
 
 void
-StartProcess(char* filename)//传入文件名
+StartProcess(char *filename)
 {
- //   char *filename =(char*)para; 
-    OpenFile *executable = fileSystem->Open(filename);//打开文件
-    AddrSpace *space;//定义地址空间
+    printf("This is Lab7-8\n");
+    OpenFile *executable = fileSystem->Open(filename);
+    AddrSpace *space;
 
     if (executable == NULL) {
-	printf("Unable to open file %s\n", filename);//无法打开文件
+	printf("Unable to open file %s\n", filename);
 	return;
     }
-//    printf("This is %s\n",filename);
-    space = new AddrSpace(executable);  //初始化地址空间
-    currentThread->space = space;       //将用户进程映射到一个核心线程
+    space = new AddrSpace(executable);    
+    currentThread->space = space;
+    space->Print();
 
-//    space->Print();                     //输出该作业的页表信息
+    delete executable;			// close file
 
-    delete executable;			//关闭文件
+    space->InitRegisters();		// set the initial register values
+    space->RestoreState();		// load page table register
 
-    space->InitRegisters();		//设置machine寄存器的初值
-    space->RestoreState();		//将应用程序页表加载到machine中
-
-    machine->Run();		        //run函数中有死循环，不会返回
+    machine->Run();			// jump to the user progam
     ASSERT(FALSE);			// machine->Run never returns;
 					// the address space exits
 					// by doing the syscall "exit"

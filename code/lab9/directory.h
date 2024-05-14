@@ -29,12 +29,15 @@
 // Internal data structures kept public so that Directory operations can
 // access them directly.
 
-class DirectoryEntry {//文件目录
+class DirectoryEntry {
   public:
-    bool inUse;				//该目录项是否投入使用
-    int sector;				//文件头所在扇区号
-    char name[FileNameMaxLen + 1];	//文件名，+1用于‘\0’
+    bool inUse;				// Is this directory entry in use?
+    int sector;				// Location on disk to find the 
+					//   FileHeader for this file 
+    char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
+					// the trailing '\0'
 };
+
 // The following class defines a UNIX-like "directory".  Each entry in
 // the directory describes a file, and where to find it on disk.
 //
@@ -45,7 +48,6 @@ class DirectoryEntry {//文件目录
 // FetchFrom/WriteBack operations shuffle the directory information
 // from/to disk. 
 
-//文件目录表
 class Directory {
   public:
     Directory(int size); 		// Initialize an empty directory
@@ -70,8 +72,8 @@ class Directory {
 					//  names and their contents.
 
   private:
-    int tableSize;			//文件目录表大小
-    DirectoryEntry *table;		//文件目录表
+    int tableSize;			// Number of directory entries
+    DirectoryEntry *table;		// Table of pairs: 
 					// <file name, file header location> 
 
     int FindIndex(char *name);		// Find the index into the directory 

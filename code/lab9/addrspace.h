@@ -18,37 +18,38 @@
 #include "bitmap.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
-#define UserProgramNum    10
+#define UserProgramNum 3
 
 class AddrSpace {
   public:
-    AddrSpace(OpenFile *executable);	// 创建地址空间
+    AddrSpace(OpenFile *executable);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
 
-    void InitRegisters();		// 初始化CPU寄存器,
+    void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
 
-    void SaveState();			// 保存、储存地址空间
-    void RestoreState();		// 恢复地址空间 
-    void Print();                       //输出程序页表
-    unsigned int getSpaceId() { return spaceId; }
+    void SaveState();			// Save/restore address space-specific
+    void RestoreState();		// info on a context switch 
+
+    void Print();
+    unsigned int getSpaceId(){return spaceId;}
 
 #ifdef FILESYS
-    OpenFile *fileDescriptor[UserProgramNum];  //文件描述符，012分别为stdin stdout stderr
-    int getFileDescriptor(OpenFile *openfile);
-    OpenFile *getFileId(int fd);
-    void releaseFileDescriptor(int fd);
 
+    OpenFile *fileDescriptor[UserProgramNum];
+    int getFileDescriptor(OpenFile* openfile);
+    OpenFile* getFileId(int fd);
+    void releaseFileDescriptor(int fd);
 #endif
 
-
   private:
-    static BitMap *userMap, *pidMap;     //全局位图
-    TranslationEntry *pageTable;	 // 线性页表
-    unsigned int numPages,spaceId;       // 页表中的页表项以及地址编号
-
+    TranslationEntry *pageTable;	// Assume linear page table translation
+					// for now!
+    unsigned int numPages,spaceId;		// Number of pages in the virtual 
+					// address space
+    static BitMap *userMap,*pidMap;
 };
-#endif // ADDRSPACE_H
 
+#endif // ADDRSPACE_H
